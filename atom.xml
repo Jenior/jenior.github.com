@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Hexo</title>
+  
+  
+  <link href="/atom.xml" rel="self"/>
+  
+  <link href="https://jenior.github.io/"/>
+  <updated>2017-11-24T02:58:23.041Z</updated>
+  <id>https://jenior.github.io/</id>
+  
+  <author>
+    <name>Jenior</name>
+    
+  </author>
+  
+  <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>SpringBoot配置</title>
+    <link href="https://jenior.github.io/2017/11/24/SpringBoot%E9%85%8D%E7%BD%AE/"/>
+    <id>https://jenior.github.io/2017/11/24/SpringBoot配置/</id>
+    <published>2017-11-24T02:48:38.000Z</published>
+    <updated>2017-11-24T02:58:23.041Z</updated>
+    
+    <content type="html"><![CDATA[<h2 id="1、SpringBoot介绍"><a href="#1、SpringBoot介绍" class="headerlink" title="1、SpringBoot介绍"></a>1、SpringBoot介绍</h2><p>Spring Boot是伴随着Spring4.0 产生的，是由Pivotal团队提供的全新框架，其设计目的是用来简化新Spring应用的初始搭建以及开发过程。该框架使用了特定的方式进行配置，从而使开发人员不再需要定义样板化的配置。通过这种方式，Boot致力于在蓬勃发展的快速应用开发领域（rapid application development）成为领导者。<br>Spring Boot让我们的Spring应用变得更轻量化。比如：你可以仅仅依靠一个Java类来运行Spring引用。你也可以打包你的应用为jar并通过使用java –jar来运行你的Spring Web应用。<br>Spring Boot的主要优点：</p><ul><li>为所有Spring开发者更快的入门</li><li>开箱即用，提供各种默认配置来简化项目配置</li><li>嵌入Tomcat, Jetty Undertow 而且不需要部署他们</li><li>没有冗余代码生成和xml配置的要求</li><li>提供生产指标,健壮检查和外部化配置</li><li>尽可能的根据项目依赖来自动配置Spring框架</li></ul><p>当然，springboot也存在它的缺点：</p><ul><li>依赖太多，随便的一个Spring Boot应用都有好几十M</li><li>缺少服务的注册和发现等解决方案，可以结合springcloud的组件使用。</li><li>缺少监控集成方案、安全管理方案（有但简单，满足不了生产的指标 ： Actuator）</li></ul>]]></content>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;h2 id=&quot;1、SpringBoot介绍&quot;&gt;&lt;a href=&quot;#1、SpringBoot介绍&quot; class=&quot;headerlink&quot; title=&quot;1、SpringBoot介绍&quot;&gt;&lt;/a&gt;1、SpringBoot介绍&lt;/h2&gt;&lt;p&gt;Spring Boot是伴随着Spring4
+      
+    
+    </summary>
+    
+    
+      <category term="java" scheme="https://jenior.github.io/tags/java/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Hello World</title>
+    <link href="https://jenior.github.io/2017/10/30/hello-world/"/>
+    <id>https://jenior.github.io/2017/10/30/hello-world/</id>
+    <published>2017-10-30T08:39:40.068Z</published>
+    <updated>2017-10-30T08:39:40.069Z</updated>
+    
+    <content type="html"><![CDATA[<p>Welcome to <a href="https://hexo.io/" target="_blank" rel="external">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/" target="_blank" rel="external">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html" target="_blank" rel="external">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues" target="_blank" rel="external">GitHub</a>.</p><h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ hexo new <span class="string">"My New Post"</span></div></pre></td></tr></table></figure><p>More info: <a href="https://hexo.io/docs/writing.html" target="_blank" rel="external">Writing</a></p><h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ hexo server</div></pre></td></tr></table></figure><p>More info: <a href="https://hexo.io/docs/server.html" target="_blank" rel="external">Server</a></p><h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ hexo generate</div></pre></td></tr></table></figure><p>More info: <a href="https://hexo.io/docs/generating.html" target="_blank" rel="external">Generating</a></p><h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ hexo deploy</div></pre></td></tr></table></figure><p>More info: <a href="https://hexo.io/docs/deployment.html" target="_blank" rel="external">Deployment</a></p>]]></content>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;p&gt;Welcome to &lt;a href=&quot;https://hexo.io/&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;Hexo&lt;/a&gt;! This is your very first post. Check &lt;a href=&quot;https://hexo.
+      
+    
+    </summary>
+    
+    
+  </entry>
+  
+</feed>
