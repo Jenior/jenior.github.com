@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
-  <title>Hexo</title>
+  <title>无所畏惧</title>
   
   
   <link href="/atom.xml" rel="self"/>
   
   <link href="https://jenior.github.io/"/>
-  <updated>2017-11-24T02:58:23.041Z</updated>
+  <updated>2017-12-25T06:29:11.444Z</updated>
   <id>https://jenior.github.io/</id>
   
   <author>
@@ -15,6 +15,29 @@
   </author>
   
   <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>Docker部署</title>
+    <link href="https://jenior.github.io/2017/12/25/Docker%E9%83%A8%E7%BD%B2/"/>
+    <id>https://jenior.github.io/2017/12/25/Docker部署/</id>
+    <published>2017-12-25T06:13:47.000Z</published>
+    <updated>2017-12-25T06:29:11.444Z</updated>
+    
+    <content type="html"><![CDATA[<h2 id="Docker介绍"><a href="#Docker介绍" class="headerlink" title="Docker介绍"></a>Docker介绍</h2><p> Docker 是一个开源的应用容器引擎，让开发者可以打包他们的应用以及依赖包到一个可移植的容器中，然后发布到任何流行的Linux机器上，也可以实现虚拟化，容器是完全使用沙箱机制，相互之间不会有任何接口。<br></p><p>一个完整的Docker有以下几个部分组成：</p><ul><li>dockerClient客户端</li><li>Docker Daemon守护进程</li><li>Docker Image镜像</li><li>DockerContainer容器[2]</li></ul>]]></content>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;h2 id=&quot;Docker介绍&quot;&gt;&lt;a href=&quot;#Docker介绍&quot; class=&quot;headerlink&quot; title=&quot;Docker介绍&quot;&gt;&lt;/a&gt;Docker介绍&lt;/h2&gt;&lt;p&gt; Docker 是一个开源的应用容器引擎，让开发者可以打包他们的应用以及依赖包到一个可移植的
+      
+    
+    </summary>
+    
+    
+      <category term="java" scheme="https://jenior.github.io/tags/java/"/>
+    
+  </entry>
   
   <entry>
     <title>SpringBoot配置</title>

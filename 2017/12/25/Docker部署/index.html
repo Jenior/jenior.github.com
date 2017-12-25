@@ -13,24 +13,24 @@
     
     
     
-    <title>SpringBoot配置 | 无所畏惧</title>
+    <title>Docker部署 | 无所畏惧</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
     
     <meta name="theme-color" content="#ffc933">
     
     
     <meta name="keywords" content="java">
-    <meta name="description" content="1、SpringBoot介绍Spring Boot是伴随着Spring4.0 产生的，是由Pivotal团队提供的全新框架，其设计目的是用来简化新Spring应用的初始搭建以及开发过程。该框架使用了特定的方式进行配置，从而使开发人员不再需要定义样板化的配置。通过这种方式，Boot致力于在蓬勃发展的快速应用开发领域（rapid application development）成为领导者。Spring">
+    <meta name="description" content="Docker介绍 Docker 是一个开源的应用容器引擎，让开发者可以打包他们的应用以及依赖包到一个可移植的容器中，然后发布到任何流行的Linux机器上，也可以实现虚拟化，容器是完全使用沙箱机制，相互之间不会有任何接口。 一个完整的Docker有以下几个部分组成：  dockerClient客户端 Docker Daemon守护进程 Docker Image镜像 DockerContainer容器">
 <meta name="keywords" content="java">
 <meta property="og:type" content="article">
-<meta property="og:title" content="SpringBoot配置">
-<meta property="og:url" content="https://jenior.github.io/2017/11/24/SpringBoot配置/index.html">
+<meta property="og:title" content="Docker部署">
+<meta property="og:url" content="https://jenior.github.io/2017/12/25/Docker部署/index.html">
 <meta property="og:site_name" content="无所畏惧">
-<meta property="og:description" content="1、SpringBoot介绍Spring Boot是伴随着Spring4.0 产生的，是由Pivotal团队提供的全新框架，其设计目的是用来简化新Spring应用的初始搭建以及开发过程。该框架使用了特定的方式进行配置，从而使开发人员不再需要定义样板化的配置。通过这种方式，Boot致力于在蓬勃发展的快速应用开发领域（rapid application development）成为领导者。Spring">
-<meta property="og:updated_time" content="2017-11-24T02:58:23.041Z">
+<meta property="og:description" content="Docker介绍 Docker 是一个开源的应用容器引擎，让开发者可以打包他们的应用以及依赖包到一个可移植的容器中，然后发布到任何流行的Linux机器上，也可以实现虚拟化，容器是完全使用沙箱机制，相互之间不会有任何接口。 一个完整的Docker有以下几个部分组成：  dockerClient客户端 Docker Daemon守护进程 Docker Image镜像 DockerContainer容器">
+<meta property="og:updated_time" content="2017-12-25T06:29:11.444Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="SpringBoot配置">
-<meta name="twitter:description" content="1、SpringBoot介绍Spring Boot是伴随着Spring4.0 产生的，是由Pivotal团队提供的全新框架，其设计目的是用来简化新Spring应用的初始搭建以及开发过程。该框架使用了特定的方式进行配置，从而使开发人员不再需要定义样板化的配置。通过这种方式，Boot致力于在蓬勃发展的快速应用开发领域（rapid application development）成为领导者。Spring">
+<meta name="twitter:title" content="Docker部署">
+<meta name="twitter:description" content="Docker介绍 Docker 是一个开源的应用容器引擎，让开发者可以打包他们的应用以及依赖包到一个可移植的容器中，然后发布到任何流行的Linux机器上，也可以实现虚拟化，容器是完全使用沙箱机制，相互之间不会有任何接口。 一个完整的Docker有以下几个部分组成：  dockerClient客户端 Docker Daemon守护进程 Docker Image镜像 DockerContainer容器">
     
         <link rel="alternate" type="application/atom+xml" title="无所畏惧" href="/atom.xml">
     
@@ -111,7 +111,7 @@
         <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light on" id="menu-toggle">
           <i class="icon icon-lg icon-navicon"></i>
         </a>
-        <div class="flex-col header-title ellipsis">SpringBoot配置</div>
+        <div class="flex-col header-title ellipsis">Docker部署</div>
         
         <div class="search-wrap" id="search-wrap">
             <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="back">
@@ -133,11 +133,11 @@
 <header class="content-header post-header">
 
     <div class="container fade-scale">
-        <h1 class="title">SpringBoot配置</h1>
+        <h1 class="title">Docker部署</h1>
         <h5 class="subtitle">
             
-                <time datetime="2017-11-24T02:48:38.000Z" itemprop="datePublished" class="page-time">
-  2017-11-24
+                <time datetime="2017-12-25T06:13:47.000Z" itemprop="datePublished" class="page-time">
+  2017-12-25
 </time>
 
 
@@ -156,17 +156,17 @@
     <aside class="post-widget">
         <nav class="post-toc-wrap" id="post-toc">
             <h4>TOC</h4>
-            <ol class="post-toc"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#1、SpringBoot介绍"><span class="post-toc-number">1.</span> <span class="post-toc-text">1、SpringBoot介绍</span></a></li></ol>
+            <ol class="post-toc"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#Docker介绍"><span class="post-toc-number">1.</span> <span class="post-toc-text">Docker介绍</span></a></li></ol>
         </nav>
     </aside>
     
-<article id="post-SpringBoot配置"
+<article id="post-Docker部署"
   class="post-article article-type-post fade" itemprop="blogPost">
 
     <div class="post-card">
-        <h1 class="post-card-title">SpringBoot配置</h1>
+        <h1 class="post-card-title">Docker部署</h1>
         <div class="post-meta">
-            <time class="post-time" title="2017-11-24 10:48:38" datetime="2017-11-24T02:48:38.000Z"  itemprop="datePublished">2017-11-24</time>
+            <time class="post-time" title="2017-12-25 14:13:47" datetime="2017-12-25T06:13:47.000Z"  itemprop="datePublished">2017-12-25</time>
 
             
 
@@ -179,20 +179,13 @@
 
         </div>
         <div class="post-content" id="post-content" itemprop="postContent">
-            <h2 id="1、SpringBoot介绍"><a href="#1、SpringBoot介绍" class="headerlink" title="1、SpringBoot介绍"></a>1、SpringBoot介绍</h2><p>Spring Boot是伴随着Spring4.0 产生的，是由Pivotal团队提供的全新框架，其设计目的是用来简化新Spring应用的初始搭建以及开发过程。该框架使用了特定的方式进行配置，从而使开发人员不再需要定义样板化的配置。通过这种方式，Boot致力于在蓬勃发展的快速应用开发领域（rapid application development）成为领导者。<br>Spring Boot让我们的Spring应用变得更轻量化。比如：你可以仅仅依靠一个Java类来运行Spring引用。你也可以打包你的应用为jar并通过使用java –jar来运行你的Spring Web应用。<br>Spring Boot的主要优点：</p>
+            <h2 id="Docker介绍"><a href="#Docker介绍" class="headerlink" title="Docker介绍"></a>Docker介绍</h2><p> Docker 是一个开源的应用容器引擎，让开发者可以打包他们的应用以及依赖包到一个可移植的容器中，然后发布到任何流行的Linux机器上，也可以实现虚拟化，容器是完全使用沙箱机制，相互之间不会有任何接口。<br></p>
+<p>一个完整的Docker有以下几个部分组成：</p>
 <ul>
-<li>为所有Spring开发者更快的入门</li>
-<li>开箱即用，提供各种默认配置来简化项目配置</li>
-<li>嵌入Tomcat, Jetty Undertow 而且不需要部署他们</li>
-<li>没有冗余代码生成和xml配置的要求</li>
-<li>提供生产指标,健壮检查和外部化配置</li>
-<li>尽可能的根据项目依赖来自动配置Spring框架</li>
-</ul>
-<p>当然，springboot也存在它的缺点：</p>
-<ul>
-<li>依赖太多，随便的一个Spring Boot应用都有好几十M</li>
-<li>缺少服务的注册和发现等解决方案，可以结合springcloud的组件使用。</li>
-<li>缺少监控集成方案、安全管理方案（有但简单，满足不了生产的指标 ： Actuator）</li>
+<li>dockerClient客户端</li>
+<li>Docker Daemon守护进程</li>
+<li>Docker Image镜像</li>
+<li>DockerContainer容器[2]</li>
 </ul>
 
         </div>
@@ -201,7 +194,7 @@
     <div class="content">
         
 <span class="post-time">
-    最後更新時間：<time datetime="2017-11-24T02:58:23.041Z" itemprop="dateUpdated">2017-11-24 10:58:23</time>
+    最後更新時間：<time datetime="2017-12-25T06:29:11.444Z" itemprop="dateUpdated">2017-12-25 14:29:11</time>
 </span><br>
 
 
@@ -232,7 +225,7 @@
 <div class="page-share" id="pageShare">
     <ul class="reset share-icons">
       <li>
-        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=https://jenior.github.io/2017/11/24/SpringBoot配置/&title=《SpringBoot配置》 — 无所畏惧&pic=https://jenior.github.io/img/avatar.jpg" data-title="微博">
+        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=https://jenior.github.io/2017/12/25/Docker部署/&title=《Docker部署》 — 无所畏惧&pic=https://jenior.github.io/img/avatar.jpg" data-title="微博">
           <i class="icon icon-weibo"></i>
         </a>
       </li>
@@ -242,22 +235,22 @@
         </a>
       </li>
       <li>
-        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=https://jenior.github.io/2017/11/24/SpringBoot配置/&title=《SpringBoot配置》 — 无所畏惧&source=" data-title=" QQ">
+        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=https://jenior.github.io/2017/12/25/Docker部署/&title=《Docker部署》 — 无所畏惧&source=" data-title=" QQ">
           <i class="icon icon-qq"></i>
         </a>
       </li>
       <li>
-        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=https://jenior.github.io/2017/11/24/SpringBoot配置/" data-title=" Facebook">
+        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=https://jenior.github.io/2017/12/25/Docker部署/" data-title=" Facebook">
           <i class="icon icon-facebook"></i>
         </a>
       </li>
       <li>
-        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《SpringBoot配置》 — 无所畏惧&url=https://jenior.github.io/2017/11/24/SpringBoot配置/&via=https://jenior.github.io" data-title=" Twitter">
+        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《Docker部署》 — 无所畏惧&url=https://jenior.github.io/2017/12/25/Docker部署/&via=https://jenior.github.io" data-title=" Twitter">
           <i class="icon icon-twitter"></i>
         </a>
       </li>
       <li>
-        <a class="google share-sns" target="_blank" href="https://plus.google.com/share?url=https://jenior.github.io/2017/11/24/SpringBoot配置/" data-title=" Google+">
+        <a class="google share-sns" target="_blank" href="https://plus.google.com/share?url=https://jenior.github.io/2017/12/25/Docker部署/" data-title=" Google+">
           <i class="icon icon-google-plus"></i>
         </a>
       </li>
@@ -277,16 +270,16 @@
     </div>
 
     
-<nav class="post-nav flex-row flex-justify-between">
-  
-    <div class="waves-block waves-effect prev">
-      <a href="/2017/12/25/Docker部署/" id="post-prev" class="post-nav-link">
-        <div class="tips"><i class="icon icon-angle-left icon-lg icon-pr"></i> Prev</div>
-        <h4 class="title">Docker部署</h4>
-      </a>
-    </div>
+<nav class="post-nav flex-row flex-justify-between flex-row-reverse">
   
 
+  
+    <div class="waves-block waves-effect next">
+      <a href="/2017/11/24/SpringBoot配置/" id="post-next" class="post-nav-link">
+        <div class="tips">Next <i class="icon icon-angle-right icon-lg icon-pl"></i></div>
+        <h4 class="title">SpringBoot配置</h4>
+      </a>
+    </div>
   
 </nav>
 
@@ -349,7 +342,7 @@
 <div class="global-share" id="globalShare">
     <ul class="reset share-icons">
       <li>
-        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=https://jenior.github.io/2017/11/24/SpringBoot配置/&title=《SpringBoot配置》 — 无所畏惧&pic=https://jenior.github.io/img/avatar.jpg" data-title="微博">
+        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=https://jenior.github.io/2017/12/25/Docker部署/&title=《Docker部署》 — 无所畏惧&pic=https://jenior.github.io/img/avatar.jpg" data-title="微博">
           <i class="icon icon-weibo"></i>
         </a>
       </li>
@@ -359,22 +352,22 @@
         </a>
       </li>
       <li>
-        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=https://jenior.github.io/2017/11/24/SpringBoot配置/&title=《SpringBoot配置》 — 无所畏惧&source=" data-title=" QQ">
+        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=https://jenior.github.io/2017/12/25/Docker部署/&title=《Docker部署》 — 无所畏惧&source=" data-title=" QQ">
           <i class="icon icon-qq"></i>
         </a>
       </li>
       <li>
-        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=https://jenior.github.io/2017/11/24/SpringBoot配置/" data-title=" Facebook">
+        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=https://jenior.github.io/2017/12/25/Docker部署/" data-title=" Facebook">
           <i class="icon icon-facebook"></i>
         </a>
       </li>
       <li>
-        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《SpringBoot配置》 — 无所畏惧&url=https://jenior.github.io/2017/11/24/SpringBoot配置/&via=https://jenior.github.io" data-title=" Twitter">
+        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《Docker部署》 — 无所畏惧&url=https://jenior.github.io/2017/12/25/Docker部署/&via=https://jenior.github.io" data-title=" Twitter">
           <i class="icon icon-twitter"></i>
         </a>
       </li>
       <li>
-        <a class="google share-sns" target="_blank" href="https://plus.google.com/share?url=https://jenior.github.io/2017/11/24/SpringBoot配置/" data-title=" Google+">
+        <a class="google share-sns" target="_blank" href="https://plus.google.com/share?url=https://jenior.github.io/2017/12/25/Docker部署/" data-title=" Google+">
           <i class="icon icon-google-plus"></i>
         </a>
       </li>
@@ -385,7 +378,7 @@
 <div class="page-modal wx-share" id="wxShare">
     <a class="close" href="javascript:;"><i class="icon icon-close"></i></a>
     <p>扫一扫，分享到微信</p>
-    <img src="//api.qrserver.com/v1/create-qr-code/?data=https://jenior.github.io/2017/11/24/SpringBoot配置/" alt="微信分享二维码">
+    <img src="//api.qrserver.com/v1/create-qr-code/?data=https://jenior.github.io/2017/12/25/Docker部署/" alt="微信分享二维码">
 </div>
 
 
