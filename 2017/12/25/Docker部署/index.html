@@ -20,17 +20,17 @@
     
     
     <meta name="keywords" content="java">
-    <meta name="description" content="Docker介绍 Docker 是一个开源的应用容器引擎，让开发者可以打包他们的应用以及依赖包到一个可移植的容器中，然后发布到任何流行的Linux机器上，也可以实现虚拟化，容器是完全使用沙箱机制，相互之间不会有任何接口。 一个完整的Docker有以下几个部分组成：  dockerClient客户端 Docker Daemon守护进程 Docker Image镜像 DockerContainer容器">
+    <meta name="description" content="Docker介绍 Docker 是一个开源的应用容器引擎，让开发者可以打包他们的应用以及依赖包到一个可移植的容器中，然后发布到任何流行的Linux机器上，也可以实现虚拟化，容器是完全使用沙箱机制，相互之间不会有任何接口。  一个完整的Docker有以下几个部分组成：  dockerClient客户端 Docker Daemon守护进程 Docker Image镜像 DockerContainer容">
 <meta name="keywords" content="java">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Docker部署">
 <meta property="og:url" content="https://jenior.github.io/2017/12/25/Docker部署/index.html">
 <meta property="og:site_name" content="无所畏惧">
-<meta property="og:description" content="Docker介绍 Docker 是一个开源的应用容器引擎，让开发者可以打包他们的应用以及依赖包到一个可移植的容器中，然后发布到任何流行的Linux机器上，也可以实现虚拟化，容器是完全使用沙箱机制，相互之间不会有任何接口。 一个完整的Docker有以下几个部分组成：  dockerClient客户端 Docker Daemon守护进程 Docker Image镜像 DockerContainer容器">
-<meta property="og:updated_time" content="2017-12-25T06:29:11.444Z">
+<meta property="og:description" content="Docker介绍 Docker 是一个开源的应用容器引擎，让开发者可以打包他们的应用以及依赖包到一个可移植的容器中，然后发布到任何流行的Linux机器上，也可以实现虚拟化，容器是完全使用沙箱机制，相互之间不会有任何接口。  一个完整的Docker有以下几个部分组成：  dockerClient客户端 Docker Daemon守护进程 Docker Image镜像 DockerContainer容">
+<meta property="og:updated_time" content="2017-12-25T06:59:18.151Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Docker部署">
-<meta name="twitter:description" content="Docker介绍 Docker 是一个开源的应用容器引擎，让开发者可以打包他们的应用以及依赖包到一个可移植的容器中，然后发布到任何流行的Linux机器上，也可以实现虚拟化，容器是完全使用沙箱机制，相互之间不会有任何接口。 一个完整的Docker有以下几个部分组成：  dockerClient客户端 Docker Daemon守护进程 Docker Image镜像 DockerContainer容器">
+<meta name="twitter:description" content="Docker介绍 Docker 是一个开源的应用容器引擎，让开发者可以打包他们的应用以及依赖包到一个可移植的容器中，然后发布到任何流行的Linux机器上，也可以实现虚拟化，容器是完全使用沙箱机制，相互之间不会有任何接口。  一个完整的Docker有以下几个部分组成：  dockerClient客户端 Docker Daemon守护进程 Docker Image镜像 DockerContainer容">
     
         <link rel="alternate" type="application/atom+xml" title="无所畏惧" href="/atom.xml">
     
@@ -117,7 +117,7 @@
             <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="back">
                 <i class="icon icon-lg icon-chevron-left"></i>
             </a>
-            <input type="text" id="key" class="search-input" autocomplete="off" placeholder="搜尋">
+            <input type="text" id="key" class="search-input" autocomplete="off" placeholder="Search">
             <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="search">
                 <i class="icon icon-lg icon-search"></i>
             </a>
@@ -156,7 +156,7 @@
     <aside class="post-widget">
         <nav class="post-toc-wrap" id="post-toc">
             <h4>TOC</h4>
-            <ol class="post-toc"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#Docker介绍"><span class="post-toc-number">1.</span> <span class="post-toc-text">Docker介绍</span></a></li></ol>
+            <ol class="post-toc"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#Docker介绍"><span class="post-toc-number">1.</span> <span class="post-toc-text">Docker介绍</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#特性"><span class="post-toc-number">1.1.</span> <span class="post-toc-text">特性</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#局限"><span class="post-toc-number">1.2.</span> <span class="post-toc-text">局限</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#Docker环境搭建"><span class="post-toc-number">2.</span> <span class="post-toc-text">Docker环境搭建</span></a></li></ol>
         </nav>
     </aside>
     
@@ -179,14 +179,39 @@
 
         </div>
         <div class="post-content" id="post-content" itemprop="postContent">
-            <h2 id="Docker介绍"><a href="#Docker介绍" class="headerlink" title="Docker介绍"></a>Docker介绍</h2><p> Docker 是一个开源的应用容器引擎，让开发者可以打包他们的应用以及依赖包到一个可移植的容器中，然后发布到任何流行的Linux机器上，也可以实现虚拟化，容器是完全使用沙箱机制，相互之间不会有任何接口。<br></p>
-<p>一个完整的Docker有以下几个部分组成：</p>
-<ul>
+            <h2 id="Docker介绍"><a href="#Docker介绍" class="headerlink" title="Docker介绍"></a>Docker介绍</h2><p> Docker 是一个开源的应用容器引擎，让开发者可以打包他们的应用以及依赖包到一个可移植的容器中，然后发布到任何流行的Linux机器上，也可以实现虚拟化，容器是完全使用沙箱机制，相互之间不会有任何接口。</p>
+<p> 一个完整的Docker有以下几个部分组成：</p>
+<ol>
 <li>dockerClient客户端</li>
 <li>Docker Daemon守护进程</li>
 <li>Docker Image镜像</li>
-<li>DockerContainer容器[2]</li>
+<li>DockerContainer容器</li>
+</ol>
+<h3 id="特性"><a href="#特性" class="headerlink" title="特性"></a>特性</h3><ul>
+<li>使应用的打包与部署自动化</li>
+<li>创建轻量、私密的PAAS环境</li>
+<li>实现自动化测试和持续的集成/部署</li>
+<li>部署与扩展webapp、数据库和后台服务</li>
 </ul>
+<h3 id="局限"><a href="#局限" class="headerlink" title="局限"></a>局限</h3><ul>
+<li>Docker是基于Linux 64bit的，无法在32bit的linux/Windows/unix环境下使用</li>
+<li>LXC是基于cgroup等linux kernel功能的，因此container的guest系统只能是linux base的</li>
+<li>隔离性相比KVM之类的虚拟化方案还是有些欠缺，所有container公用一部分的运行库</li>
+<li>网络管理相对简单，主要是基于namespace隔离</li>
+<li>cgroup的cpu和cpuset提供的cpu功能相比KVM的等虚拟化方案相比难以度量(所以dotcloud主要是按内存收费)</li>
+<li>Docker对disk的管理比较有限</li>
+<li>container随着用户进程的停止而销毁，container中的log等用户数据不便收集</li>
+</ul>
+<h2 id="Docker环境搭建"><a href="#Docker环境搭建" class="headerlink" title="Docker环境搭建"></a>Docker环境搭建</h2><p>Linux 发行版本是RHEL或CentOS，便需要7或之后版本</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ uname -r</div></pre></td></tr></table></figure>
+<p>系统架构必须是64位</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ uname -m</div></pre></td></tr></table></figure>
+<p>检查系统，安装适合的Docker安装包</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">$ curl https://get.docker.com &gt; /tmp/install.sh</div><div class="line">$ chmod +x /tmp/install.sh</div><div class="line">$ /tmp/install.sh</div></pre></td></tr></table></figure>
+<p>Docker运行时需要特殊的权限，所以默认执行命令时前面必须加上sudo，省略命令前面加上sudo的方法就是将用户加入用户组。将用户加入用户组等同于赋予他root权限。因此，要了解机器是不是共享的，否则有安全隐患。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ sudo usermod -aG docker 用户</div></pre></td></tr></table></figure>
+<p>加入用户组后，需要先注销再登入系统<br>然后是启动docker服务</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ sudo service docker restart</div></pre></td></tr></table></figure>
 
         </div>
 
@@ -194,7 +219,7 @@
     <div class="content">
         
 <span class="post-time">
-    最後更新時間：<time datetime="2017-12-25T06:29:11.444Z" itemprop="dateUpdated">2017-12-25 14:29:11</time>
+    Last updated: <time datetime="2017-12-25T06:59:18.151Z" itemprop="dateUpdated">2017-12-25 14:59:18</time>
 </span><br>
 
 
@@ -320,7 +345,7 @@
             
                 <span><a href="/atom.xml" target="_blank" class="rss" title="rss"><i class="icon icon-lg icon-rss"></i></a></span>
             
-            <span>本部落格係採用<a rel="license" href="https://creativecommons.org/licenses/by/4.0/deed.zh_TW">創用 CC 姓名標示 4.0 國際 授權條款授權</a></span>
+            <span>This blog is licensed under a <a rel="license" href="https://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>.</span>
         </p>
     </div>
     <div class="bottom">
