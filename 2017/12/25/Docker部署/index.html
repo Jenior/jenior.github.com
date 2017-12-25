@@ -19,15 +19,15 @@
     <meta name="theme-color" content="#ffc933">
     
     
-    <meta name="keywords" content="java">
+    <meta name="keywords" content="docker">
     <meta name="description" content="Docker介绍 Docker 是一个开源的应用容器引擎，让开发者可以打包他们的应用以及依赖包到一个可移植的容器中，然后发布到任何流行的Linux机器上，也可以实现虚拟化，容器是完全使用沙箱机制，相互之间不会有任何接口。  一个完整的Docker有以下几个部分组成：  dockerClient客户端 Docker Daemon守护进程 Docker Image镜像 DockerContainer容">
-<meta name="keywords" content="java">
+<meta name="keywords" content="docker">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Docker部署">
 <meta property="og:url" content="https://jenior.github.io/2017/12/25/Docker部署/index.html">
 <meta property="og:site_name" content="无所畏惧">
 <meta property="og:description" content="Docker介绍 Docker 是一个开源的应用容器引擎，让开发者可以打包他们的应用以及依赖包到一个可移植的容器中，然后发布到任何流行的Linux机器上，也可以实现虚拟化，容器是完全使用沙箱机制，相互之间不会有任何接口。  一个完整的Docker有以下几个部分组成：  dockerClient客户端 Docker Daemon守护进程 Docker Image镜像 DockerContainer容">
-<meta property="og:updated_time" content="2017-12-25T06:59:18.151Z">
+<meta property="og:updated_time" content="2017-12-25T08:45:30.651Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Docker部署">
 <meta name="twitter:description" content="Docker介绍 Docker 是一个开源的应用容器引擎，让开发者可以打包他们的应用以及依赖包到一个可移植的容器中，然后发布到任何流行的Linux机器上，也可以实现虚拟化，容器是完全使用沙箱机制，相互之间不会有任何接口。  一个完整的Docker有以下几个部分组成：  dockerClient客户端 Docker Daemon守护进程 Docker Image镜像 DockerContainer容">
@@ -117,7 +117,7 @@
             <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="back">
                 <i class="icon icon-lg icon-chevron-left"></i>
             </a>
-            <input type="text" id="key" class="search-input" autocomplete="off" placeholder="Search">
+            <input type="text" id="key" class="search-input" autocomplete="off" placeholder="输入感兴趣的关键字">
             <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="search">
                 <i class="icon icon-lg icon-search"></i>
             </a>
@@ -156,7 +156,7 @@
     <aside class="post-widget">
         <nav class="post-toc-wrap" id="post-toc">
             <h4>TOC</h4>
-            <ol class="post-toc"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#Docker介绍"><span class="post-toc-number">1.</span> <span class="post-toc-text">Docker介绍</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#特性"><span class="post-toc-number">1.1.</span> <span class="post-toc-text">特性</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#局限"><span class="post-toc-number">1.2.</span> <span class="post-toc-text">局限</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#Docker环境搭建"><span class="post-toc-number">2.</span> <span class="post-toc-text">Docker环境搭建</span></a></li></ol>
+            <ol class="post-toc"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#Docker介绍"><span class="post-toc-number">1.</span> <span class="post-toc-text">Docker介绍</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#特性"><span class="post-toc-number">1.1.</span> <span class="post-toc-text">特性</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#局限"><span class="post-toc-number">1.2.</span> <span class="post-toc-text">局限</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#Docker环境搭建"><span class="post-toc-number">2.</span> <span class="post-toc-text">Docker环境搭建</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#Docker部署项目"><span class="post-toc-number">3.</span> <span class="post-toc-text">Docker部署项目</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#java-环境搭建"><span class="post-toc-number">3.1.</span> <span class="post-toc-text">java 环境搭建</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#创建镜像"><span class="post-toc-number">3.2.</span> <span class="post-toc-text">创建镜像</span></a></li></ol></li></ol>
         </nav>
     </aside>
     
@@ -212,6 +212,17 @@
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ sudo usermod -aG docker 用户</div></pre></td></tr></table></figure>
 <p>加入用户组后，需要先注销再登入系统<br>然后是启动docker服务</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ sudo service docker restart</div></pre></td></tr></table></figure>
+<h2 id="Docker部署项目"><a href="#Docker部署项目" class="headerlink" title="Docker部署项目"></a>Docker部署项目</h2><h3 id="java-环境搭建"><a href="#java-环境搭建" class="headerlink" title="java 环境搭建"></a>java 环境搭建</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">$ docker search java</div><div class="line">$ docker pull java:8</div></pre></td></tr></table></figure>
+<h3 id="创建镜像"><a href="#创建镜像" class="headerlink" title="创建镜像"></a>创建镜像</h3><p>Docker 使用 Dockerfile 文件格式来指定 image 层</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">FROM java:8</div><div class="line">VOLUME /tmp</div><div class="line">ADD push.jar push.jar</div><div class="line">EXPOSE 7888</div><div class="line">ENTRYPOINT [&quot;java&quot;,&quot;-Djava.security.egd=file:/dev/./urandom&quot;,&quot;-jar&quot;,&quot;push.jar&quot;,&quot;--server.port=7888&quot;]</div></pre></td></tr></table></figure>
+<p>解释下配置文件：</p>
+<ul>
+<li><code>FROM</code> 指定运行环境</li>
+<li><code>VOLUME</code>  指定了临时文件目录为<code>/tmp</code>。其效果是在主机 <code>/var/lib/docker</code> 目录下创建了一个临时文件，并链接到容器的<code>/tmp</code>。改步骤是可选的，如果涉及到文件系统的应用就很有必要了。<code>/tmp</code>目录用来持久化到 Docker 数据文件夹，因为 Spring Boot 使用的内嵌 Tomcat 容器默认使用<code>/tmp</code>作为工作目录</li>
+<li><code>ADD</code> 项目的 jar 文件作为 <code>push.jar</code> 添加到容器</li>
+<li><code>EXPOSE</code> 暴露端口</li>
+<li><code>ENTRYPOINT</code> 执行项目 push.jar。为了缩短 Tomcat 启动时间，添加一个系统属性指向 “/dev/urandom” 作为 Entropy Source 并指定应用端口为7888</li>
+</ul>
 
         </div>
 
@@ -219,7 +230,7 @@
     <div class="content">
         
 <span class="post-time">
-    Last updated: <time datetime="2017-12-25T06:59:18.151Z" itemprop="dateUpdated">2017-12-25 14:59:18</time>
+    最后更新时间：<time datetime="2017-12-25T08:45:30.651Z" itemprop="dateUpdated">2017-12-25 16:45:30</time>
 </span><br>
 
 
@@ -240,7 +251,7 @@
 
         <div class="post-footer">
             
-	<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/java/">java</a></li></ul>
+	<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/docker/">docker</a></li></ul>
 
 
             
@@ -345,7 +356,7 @@
             
                 <span><a href="/atom.xml" target="_blank" class="rss" title="rss"><i class="icon icon-lg icon-rss"></i></a></span>
             
-            <span>This blog is licensed under a <a rel="license" href="https://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>.</span>
+            <span>博客内容遵循 <a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh">知识共享 署名 - 非商业性 - 相同方式共享 4.0 国际协议</a></span>
         </p>
     </div>
     <div class="bottom">
