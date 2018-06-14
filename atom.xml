@@ -6,7 +6,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="https://jenior.github.io/"/>
-  <updated>2017-12-25T09:49:59.677Z</updated>
+  <updated>2018-06-14T03:25:20.166Z</updated>
   <id>https://jenior.github.io/</id>
   
   <author>
@@ -15,6 +15,20 @@
   </author>
   
   <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>hanlder机制</title>
+    <link href="https://jenior.github.io/2018/06/14/handler%E6%9C%BA%E5%88%B6/"/>
+    <id>https://jenior.github.io/2018/06/14/handler机制/</id>
+    <published>2018-06-14T03:25:20.000Z</published>
+    <updated>2018-06-14T03:25:20.166Z</updated>
+    
+    <summary type="html">
+    
+    </summary>
+    
+    
+  </entry>
   
   <entry>
     <title>Docker部署</title>
