@@ -315,7 +315,7 @@
     </div>
 
     <!-- Modal 2: iOS Fullscreen Immersive Lightbox (大图画廊预览) -->
-    <div id="lightbox-modal" class="fixed inset-0 z-50 bg-black/95 opacity-0 pointer-events-none transition-opacity duration-300 flex flex-col justify-between">
+    <div id="lightbox-modal" class="hidden fixed inset-0 z-50 bg-black/95 opacity-0 pointer-events-none transition-opacity duration-300 flex flex-col justify-between">
       <div class="pt-10 px-4 flex justify-between items-center text-white z-20">
         <button onclick="closeLightbox()" class="w-9 h-9 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center active:scale-90">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
@@ -343,7 +343,7 @@
       </div>
 
       <!-- Lightbox Bottom Actions Bar (仅保留视频全屏播放，已移除删除、下载与复制链接) -->
-      <div id="lightbox-bottom-bar" class="pb-10 px-6 flex justify-center items-center text-white text-xs z-20 pointer-events-auto">
+      <div id="lightbox-bottom-bar" class="pb-10 px-6 flex justify-center items-center text-white text-xs z-20">
         <button id="lightbox-direct-play-btn" onclick="openDirectMediaUrl()" class="hidden px-5 py-2.5 rounded-full bg-white/15 hover:bg-white/20 active:scale-95 backdrop-blur-xl border border-white/20 text-white font-medium flex items-center space-x-2 shadow-2xl transition">
           <svg class="w-4 h-4 text-emerald-400 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
           <span class="text-xs tracking-wide">全屏播放</span>
@@ -541,9 +541,7 @@
       fullHeicRule: 'imageMogr2/format/webp/quality/95',
       // 备选降级规则：若浏览器或特定桶未开启 WebP，降级为高效 JPEG 规则
       fallbackJpgThumb: 'imageMogr2/thumbnail/400x/format/jpg/quality/85',
-      fallbackJpgFull: 'imageMogr2/format/jpg/quality/95',
-      // 方案 A：腾讯云数据万象 CI 视频极速截帧规则 (截取第 1.0 秒画面，400px 高清缩略图)
-      videoSnapshotRule: 'ci-process=snapshot&time=1.0&format=jpg&width=400'
+      fallbackJpgFull: 'imageMogr2/format/jpg/quality/95'
     };
 
     const videoExts = ['.mp4', '.mov', '.m4v', '.webm', '.avi', '.mkv', '.3gp'];
@@ -559,6 +557,33 @@
       if (!filenameOrUrl) return false;
       const cleanPath = String(filenameOrUrl).split('?')[0].split('#')[0].toLowerCase();
       return cleanPath.endsWith('.heic') || cleanPath.endsWith('.heif');
+    }
+
+    // ========================================================
+    // 腾讯云工作流视频持久化封面自动配对与全站严格过滤系统
+    // 全局屏蔽规则：任何包含或以 _thumb.webp 结尾的文件（包括 ${InputName}_${Number}_thumb.webp，兼容旧版 _0.jpg）
+    // 确保在 Show Tab、相册 Tab、存储 Tab 中 100% 彻底隐形！
+    // ========================================================
+    const companionVideoThumbsMap = new Map(); // videoBaseKey ('folder/img_8418') -> companionThumbKey
+    const VIDEO_COMPANION_THUMB_RE = /^(.*?)_(\d+_)?thumb\.webp$/i;
+    const LEGACY_VIDEO_THUMB_RE = /^(.*)_0\.jpg$/i;
+
+    function isVideoCompanionThumbnail(key) {
+      if (!key) return false;
+      const lower = String(key).toLowerCase();
+      if (lower.endsWith('_thumb.webp') || lower.includes('_thumb.webp')) return true;
+      if (VIDEO_COMPANION_THUMB_RE.test(key)) return true;
+      if (LEGACY_VIDEO_THUMB_RE.test(key)) return true;
+      return false;
+    }
+
+    function getCompanionBaseVideoKey(key) {
+      if (!key) return null;
+      const m1 = key.match(VIDEO_COMPANION_THUMB_RE);
+      if (m1) return m1[1].toLowerCase();
+      const m2 = key.match(LEGACY_VIDEO_THUMB_RE);
+      if (m2) return m2[1].toLowerCase();
+      return null;
     }
 
     // 拼接腾讯云 CI 数据万象处理指令
@@ -1367,11 +1392,24 @@
 
         // 2. 递归全量分页拉取存储桶内全部对象，统计媒体数量并缓存到 allBucketMediaMap
         fetchAllBucketObjects('', function(allObjects) {
+          // Pass 1: 扫描并建立伴生视频封面字典（${InputName}_${Number}_thumb.webp）
+          companionVideoThumbsMap.clear();
+          allObjects.forEach(item => {
+            if (isVideoCompanionThumbnail(item.Key)) {
+              const baseKey = getCompanionBaseVideoKey(item.Key);
+              if (baseKey) companionVideoThumbsMap.set(baseKey, item.Key);
+            }
+          });
+
+          // Pass 2: 遍历创建媒体项（自动隐藏伴生封面缩略图）
           allObjects.forEach(item => {
             if (item.Key.endsWith('/')) {
               if (!counts[item.Key]) counts[item.Key] = 0;
               return;
             }
+            // 伴生视频封面图由视频本身引用，不作为独立照片显示
+            if (isVideoCompanionThumbnail(item.Key)) return;
+
             const lower = item.Key.toLowerCase();
             const isMedia = imageExts.some(ext => lower.endsWith(ext)) || videoExts.some(ext => lower.endsWith(ext));
             if (!isMedia) return;
@@ -1555,13 +1593,12 @@
       currentViewingItem = null;
     }
 
-    // 获取整个存储桶的完整资源池（不受当前选中目录限制）
+    // 获取整个存储桶的完整资源池（不受当前选中目录限制，全局排除 _thumb.webp）
     function getAllBucketMediaPool() {
-      // 若全桶媒体字典已有数据，直接返回字典中所有项
-      if (allBucketMediaMap.size > 0) {
-        return Array.from(allBucketMediaMap.values());
-      }
-      return realPhotosData || [];
+      const source = allBucketMediaMap.size > 0 
+        ? Array.from(allBucketMediaMap.values()) 
+        : (realPhotosData || []);
+      return source.filter(p => !isVideoCompanionThumbnail(p.key));
     }
 
     // 获取按累计浏览时长排名的基准数据，并执行严格去重与目录去重
@@ -1678,18 +1715,12 @@
         { title: '🎞️ 岁月拾光 · 时空印记', subtitle: '时间沉淀精彩瞬间' }
       ];
 
-      // 生成 3 个横向滑动推荐队列
-      let html = `
-        <div class="px-1 pt-1 pb-2">
-          <div class="flex items-center justify-between">
-            <h2 class="text-base font-extrabold tracking-tight flex items-center space-x-1.5 text-gray-900 dark:text-white">
-              <span>✨ 探索与回忆推荐</span>
-            </h2>
-            <span class="text-[11px] bg-blue-500/10 text-blue-600 dark:text-blue-400 font-semibold px-2 py-0.5 rounded-full">3大精选推荐队列</span>
-          </div>
-          <p class="text-[11px] text-gray-400 mt-0.5">智能算法聚合精彩瞬间，核心基准严格去重，横向滑动畅享浏览</p>
-        </div>
-      `;
+      // ========================================================
+      // 1. 数据抽取：从 3 个精选数据源中各抽取 2 张图（共 6 张）
+      // 第 1 张为队列第 1 个核心驻留，第 2 张为同队列随机挑选
+      // ========================================================
+      const ring6Items = [];
+      const preparedQueues = [];
 
       top3Items.forEach((entry, qIndex) => {
         const headPhoto = entry.photo;
@@ -1700,11 +1731,10 @@
 
         // 从全桶媒体池中挑选同目录其他数据，严格排除头部自身
         const sameDirPool = allPool.filter(p => p.key !== headPhoto.key && getParentDirectory(p.key) === parentDir);
-        // 随机打乱洗牌
         const shuffled = [...sameDirPool].sort(() => 0.5 - Math.random());
         let peerPhotos = shuffled.slice(0, 4);
 
-        // 若同目录资源不足 4 张，则从全桶池随机补充不重复的照片
+        // 若同目录资源不足 4 张，从全桶池随机补充不重复的照片
         if (peerPhotos.length < 4) {
           const usedKeysInQueue = new Set([headPhoto.key, ...peerPhotos.map(p => p.key)]);
           const others = allPool.filter(p => !usedKeysInQueue.has(p.key)).sort(() => 0.5 - Math.random());
@@ -1712,54 +1742,155 @@
         }
 
         const queueItems = [headPhoto, ...peerPhotos];
+        preparedQueues.push({
+          qIndex,
+          headPhoto,
+          dirDisplayName,
+          durDisplay,
+          theme,
+          queueItems
+        });
 
+        // 抽取 2 张：第 1 张为核心驻留，第 2 张为同队列随机挑选
+        ring6Items.push({
+          photo: headPhoto,
+          isCore: true,
+          queueTitle: theme.title,
+          qIndex: qIndex
+        });
+
+        const randPeer = peerPhotos.length > 0 
+          ? peerPhotos[Math.floor(Math.random() * peerPhotos.length)] 
+          : headPhoto;
+        ring6Items.push({
+          photo: randPeer,
+          isCore: false,
+          queueTitle: theme.title,
+          qIndex: qIndex
+        });
+      });
+
+      // 兜底补齐 6 张（极小数据量时）
+      const seenKeys = new Set(ring6Items.map(r => r.photo.key));
+      for (const p of allPool) {
+        if (ring6Items.length >= 6) break;
+        if (!seenKeys.has(p.key)) {
+          seenKeys.add(p.key);
+          ring6Items.push({
+            photo: p,
+            isCore: false,
+            queueTitle: '✨ 精彩漫步',
+            qIndex: ring6Items.length % 3
+          });
+        }
+      }
+
+      // ========================================================
+      // 2. 界面构建：
+      // (1) 吸顶 Header（标题固定不跟随滚动）
+      // (2) 头部预留 300px 3D 矩阵环形轮播空间
+      // (3) 三大推荐列表（尺寸缩小至 75%）
+      // ========================================================
+      let html = `
+        <!-- (1) 吸顶 Header：页面滚动时标题固定，z-30 彻底防穿模 -->
+        <div class="sticky top-0 z-30 bg-white/95 dark:bg-[#121214]/95 backdrop-blur-xl border-b border-gray-200/50 dark:border-gray-800/60 -mx-3 px-4 pt-2 pb-2.5 flex items-center justify-between mb-1 shadow-xs">
+          <div class="flex items-center space-x-2">
+            <span class="text-base flex-shrink-0">✨</span>
+            <div class="min-w-0">
+              <h2 class="text-sm font-extrabold tracking-tight text-gray-900 dark:text-white truncate leading-tight">
+                探索与回忆精选
+              </h2>
+              <p class="text-[10px] text-gray-400 mt-0.5 font-medium truncate">3D 矩阵环形轮播 · 三大主题精选</p>
+            </div>
+          </div>
+          <span class="text-[10px] bg-blue-500/10 text-blue-600 dark:text-blue-400 font-bold px-2 py-0.5 rounded-full border border-blue-500/20 flex-shrink-0">
+            6图空间焦点
+          </span>
+        </div>
+
+        <!-- (2) 预留 300px 矩阵式 3D 环形图片轮播空间 (首尾相接、左低右高、居中高亮两侧缩小，isolation: isolate 彻底切除穿模) -->
+        <div id="show-ring-wrapper" class="relative w-full h-[300px] overflow-hidden rounded-3xl bg-gradient-to-b from-gray-500/5 via-transparent to-gray-500/5 dark:from-white/5 dark:via-transparent dark:to-white/5 border border-gray-200/50 dark:border-gray-800/60 my-2 select-none flex flex-col items-center justify-between pt-2 pb-2 shadow-xs" style="isolation: isolate; contain: paint;">
+          <!-- 顶部状态行 -->
+          <div class="z-20 flex items-center justify-between w-full px-4 text-[10px]">
+            <div class="flex items-center space-x-1.5 text-amber-500 font-bold">
+              <span class="animate-pulse">🪐</span>
+              <span id="ring-badge-text">3D 矩阵环形空间 · 核心焦点</span>
+            </div>
+            <span class="text-[9px] text-gray-400 font-mono tracking-wider">左右轻扫滑动 / 点击查看</span>
+          </div>
+
+          <!-- 3D 环形舞台容器 -->
+          <div id="ring-3d-stage" class="relative w-full h-[225px] flex items-center justify-center pointer-events-auto" style="perspective: 1000px; transform-style: preserve-3d;">
+            <!-- 6 张 3D 卡片由 setupShowRingCarousel 动态注入 -->
+          </div>
+
+          <!-- 底部 6 个指示器圆点 -->
+          <div id="ring-dots-bar" class="flex items-center space-x-1.5 z-20"></div>
+        </div>
+
+        <!-- 推荐队列分隔提示 -->
+        <div class="px-1 pt-1 pb-1 flex items-center justify-between">
+          <span class="text-xs font-bold text-gray-800 dark:text-gray-200 flex items-center space-x-1">
+            <span>📚</span>
+            <span>深度主题队列 (75% 紧凑版)</span>
+          </span>
+          <span class="text-[10px] text-gray-400">横向滑动探索更多</span>
+        </div>
+
+        <!-- (3) 三大精选数据列表 (尺寸等比缩小至 75%) -->
+        <div class="space-y-3 pb-2">
+      `;
+
+      preparedQueues.forEach(q => {
         html += `
-          <div class="bg-gray-50 dark:bg-[#18181b] p-3.5 rounded-3xl border border-gray-200/60 dark:border-gray-800/80 shadow-sm space-y-3">
-            <!-- 队列标题行 -->
+          <div class="bg-gray-50 dark:bg-[#18181b] p-2.5 rounded-2xl border border-gray-200/60 dark:border-gray-800/80 shadow-xs space-y-2">
+            <!-- 队列标题行 (紧凑 75% 风格) -->
             <div class="flex items-center justify-between px-1">
-              <div class="flex items-center space-x-2 min-w-0">
-                <span class="w-5 h-5 rounded-full bg-blue-600 text-white text-[10px] font-bold flex items-center justify-center flex-shrink-0">
-                  ${qIndex + 1}
+              <div class="flex items-center space-x-1.5 min-w-0">
+                <span class="w-4 h-4 rounded-full bg-blue-600 text-white text-[9px] font-bold flex items-center justify-center flex-shrink-0">
+                  ${q.qIndex + 1}
                 </span>
                 <div class="min-w-0">
-                  <div class="text-xs font-bold text-gray-800 dark:text-gray-100 truncate">${theme.title}</div>
-                  <div class="text-[10px] text-gray-400 truncate">${dirDisplayName} · 基准: ${headPhoto.title}</div>
+                  <div class="text-[11px] font-bold text-gray-800 dark:text-gray-100 truncate">${q.theme.title}</div>
+                  <div class="text-[9px] text-gray-400 truncate">${q.dirDisplayName} · 基准: ${q.headPhoto.title}</div>
                 </div>
               </div>
-              <span class="text-[10px] text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full font-medium flex-shrink-0">
-                ${durDisplay}
+              <span class="text-[9px] text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded-full font-medium flex-shrink-0">
+                ${q.durDisplay}
               </span>
             </div>
 
-            <!-- 横向滑动容器 (支持 iOS 原生惯性滑动与卡片居左吸附) -->
-            <div class="flex space-x-3 overflow-x-auto no-scrollbar snap-x-mandatory pb-1 pt-0.5">
+            <!-- 横向滑动容器 (卡片缩小至 75%：宽由 144px 降为 108px) -->
+            <div class="flex space-x-2 overflow-x-auto no-scrollbar snap-x-mandatory pb-0.5 pt-0.5">
         `;
 
-        queueItems.forEach((item, itemIdx) => {
+        q.queueItems.forEach((item, itemIdx) => {
           const isCore = itemIdx === 0;
-          const badgeText = isCore ? '★ 推荐基准' : `推荐 ${itemIdx}`;
+          const badgeText = isCore ? '★ 基准' : `${itemIdx}`;
           const badgeClass = isCore ? 'bg-amber-500 text-white shadow-xs' : 'bg-black/60 backdrop-blur-md text-white/90';
           const memBlobUrl = objectUrlMemMap.get(item.key) || null;
           const isMemHit = !!memBlobUrl;
 
           html += `
-            <div onclick="openLightbox('${item.key}')" class="snap-start flex-shrink-0 w-36 aspect-[3/4] relative rounded-2xl overflow-hidden bg-gray-200 dark:bg-gray-800 cursor-pointer active:scale-95 transition shadow-sm group">
-              <!-- 缩略图 / 视频 CI 截帧 -->
+            <!-- 75% 紧凑尺寸卡片：宽 108px, 高约 144px -->
+            <div onclick="openLightbox('${item.key}')" class="snap-start flex-shrink-0 w-[108px] aspect-[3/4] relative rounded-xl overflow-hidden bg-gray-200 dark:bg-gray-800 cursor-pointer active:scale-95 transition shadow-xs group">
               ${item.isVideo ? `
                 <div class="w-full h-full bg-slate-900 flex items-center justify-center relative">
-                  <img id="show-video-thumb-${item.id}"
-                       data-key="${item.key}"
-                       data-etag="${item.etag}"
-                       src="${memBlobUrl || item.thumbUrl}" 
-                       alt="${item.title}" 
-                       loading="lazy" 
-                       decoding="async" 
-                       class="w-full h-full object-cover pointer-events-none ${isMemHit ? '' : 'opacity-0'} transition-opacity duration-300"
-                       onload="handleVideoThumbLoaded(this, ${item.id})"
-                       onerror="handleVideoThumbError(this, ${item.id})">
+                  ${(memBlobUrl || item.thumbUrl) ? `
+                    <img id="show-video-thumb-${item.id}"
+                         data-key="${item.key}"
+                         data-etag="${item.etag}"
+                         src="${memBlobUrl || item.thumbUrl}" 
+                         alt="${item.title}" 
+                         loading="lazy" 
+                         decoding="async" 
+                         class="w-full h-full object-cover pointer-events-none ${isMemHit ? '' : 'opacity-0'} transition-opacity duration-300"
+                         onload="handleVideoThumbLoaded(this, ${item.id})"
+                         onerror="handleVideoThumbError(this, ${item.id})">
+                  ` : ''}
                   <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-                    <div class="w-8 h-8 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center text-white">
-                      <svg class="w-4 h-4 fill-current ml-0.5" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                    <div class="w-6 h-6 rounded-full bg-black/50 backdrop-blur-xs flex items-center justify-center text-white">
+                      <svg class="w-3 h-3 fill-current ml-0.5" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
                     </div>
                   </div>
                 </div>
@@ -1776,15 +1907,14 @@
                      onerror="handlePhotoError(this, ${item.id})">
               `}
 
-              <!-- 角标 -->
-              <div class="absolute top-2 left-2 px-1.5 py-0.5 rounded-md text-[9px] font-semibold tracking-wide ${badgeClass}">
+              <!-- 紧凑角标 -->
+              <div class="absolute top-1.5 left-1.5 px-1 py-0.5 rounded text-[8px] font-semibold tracking-tight ${badgeClass}">
                 ${badgeText}
               </div>
 
-              <!-- 底部标题蒙层 -->
-              <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent p-2 text-white">
-                <div class="text-[10px] font-medium truncate">${item.title}</div>
-                <div class="text-[9px] text-gray-300 font-mono">${item.size || ''}</div>
+              <!-- 底部标题遮罩 -->
+              <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent p-1.5 text-white pointer-events-none">
+                <div class="text-[9px] font-medium truncate">${item.title}</div>
               </div>
             </div>
           `;
@@ -1796,9 +1926,315 @@
         `;
       });
 
+      html += `</div>`;
       showContainer.innerHTML = html;
+
+      // 启动 3D 矩阵环形轮播引擎
+      setupShowRingCarousel(ring6Items);
+
       // 异步探测 Show Tab 的 localForage 缓存
       applyLocalMediaCacheToGallery('#show-view');
+    }
+
+    // ========================================================
+    // 3D 矩阵式空间环形轮播控制器 (首尾相接、左低右高、居中高亮两侧缩小)
+    // ========================================================
+    let ringCarouselCurrentIdx = 0;
+    let ringCarouselAutoTimer = null;
+
+    function setupShowRingCarousel(items6) {
+      if (!items6 || items6.length === 0) return;
+      const stage = document.getElementById('ring-3d-stage');
+      const dotsBar = document.getElementById('ring-dots-bar');
+      if (!stage || !dotsBar) return;
+
+      if (ringCarouselAutoTimer) {
+        clearInterval(ringCarouselAutoTimer);
+        ringCarouselAutoTimer = null;
+      }
+      ringCarouselCurrentIdx = 0;
+
+      // 1. 生成 6 个指示小点
+      let dotsHtml = '';
+      items6.forEach((_, idx) => {
+        dotsHtml += `<button onclick="jumpRingCarousel(${idx})" id="ring-dot-${idx}" class="transition-all duration-300 ${idx === 0 ? 'w-5 h-1.5 bg-amber-400 rounded-full' : 'w-1.5 h-1.5 bg-gray-400/40 rounded-full'}"></button>`;
+      });
+      dotsBar.innerHTML = dotsHtml;
+
+      // 2. 生成 6 张 3D 卡片
+      let cardsHtml = '';
+      items6.forEach((entry, idx) => {
+        const item = entry.photo;
+        const memBlobUrl = objectUrlMemMap.get(item.key) || null;
+        const isMemHit = !!memBlobUrl;
+        const badgeTitle = entry.isCore ? '★ 核心驻留' : '✨ 随机探索';
+        const badgeColor = entry.isCore ? 'bg-amber-500 text-white' : 'bg-blue-600 text-white';
+
+        cardsHtml += `
+          <div id="ring-card-${idx}" 
+               data-key="${item.key}"
+               data-index="${idx}"
+               onclick="handleRingCardClick(${idx})"
+               class="absolute w-32 aspect-[3/4] rounded-2xl overflow-hidden cursor-pointer shadow-xl select-none"
+               style="transition: all 0.48s cubic-bezier(0.34, 1.3, 0.64, 1); will-change: transform, opacity, filter;">
+            <!-- 媒体渲染 -->
+            ${item.isVideo ? `
+              <div class="w-full h-full bg-slate-950 flex items-center justify-center relative">
+                ${(memBlobUrl || item.thumbUrl) ? `
+                  <img src="${memBlobUrl || item.thumbUrl}" 
+                       alt="${item.title}" 
+                       class="w-full h-full object-cover pointer-events-none"
+                       onload="this.classList.remove('opacity-0')"
+                       onerror="handleVideoThumbError(this, ${item.id})">
+                ` : ''}
+                <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <div class="w-8 h-8 rounded-full bg-black/60 backdrop-blur-xs flex items-center justify-center text-white border border-white/20 shadow-lg">
+                    <svg class="w-4 h-4 fill-current ml-0.5 text-amber-400" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                  </div>
+                </div>
+              </div>
+            ` : `
+              <img src="${memBlobUrl || item.thumbUrl || item.url}" 
+                   alt="${item.title}" 
+                   class="w-full h-full object-cover pointer-events-none"
+                   onload="this.classList.remove('opacity-0')"
+                   onerror="handlePhotoError(this, ${item.id})">
+            `}
+
+            <!-- 顶部队列来源标识 -->
+            <div class="absolute top-2 left-2 z-10 px-1.5 py-0.5 rounded-md text-[8px] font-bold shadow-xs ${badgeColor}">
+              ${badgeTitle}
+            </div>
+
+            <!-- 底部半透明卡片标题 -->
+            <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent p-2 text-white pointer-events-none">
+              <div class="text-[9px] font-bold truncate">${item.title}</div>
+              <div class="text-[8px] text-gray-300 truncate">${entry.queueTitle}</div>
+            </div>
+          </div>
+        `;
+      });
+
+      stage.innerHTML = cardsHtml;
+
+      // 3. 实时计算并应用 3D 环形参数
+      renderRingPositions(items6);
+
+      // 4. 绑定移动端左右滑动触摸手势
+      bindRingTouchSwipe(items6);
+
+      // 5. 开启自动轻缓轮播（每 4 秒轮转一格）
+      startRingAutoPlay(items6);
+    }
+
+    // 环形 3D 空间状态渲染核心算法
+    // 满足要求：左低右高、首尾相接、中间位置高亮两侧尺寸缩小
+    function renderRingPositions(items6) {
+      const total = items6.length;
+      const cur = ringCarouselCurrentIdx;
+
+      for (let i = 0; i < total; i++) {
+        const card = document.getElementById(`ring-card-${i}`);
+        if (!card) continue;
+
+        // 计算循环偏移差值 (-2, -1, 0, 1, 2, 3)
+        let diff = (i - cur + total) % total;
+        if (diff > 3) diff -= total;
+
+        let tx = 0;       // X 轴水平位移
+        let ty = 0;       // Y 轴垂直位移 (实现左低右高：左侧 +ty 偏低，右侧 -ty 偏高)
+        let tz = 0;       // Z 轴深度位移
+        let scale = 1;    // 尺寸缩放
+        let rotY = 0;     // Y 轴空间旋转角度
+        let rotZ = -2.5;  // 微倾角仰角
+        let opacity = 1;  // 透明度退晕
+        let zIndex = 10;  // 图层层级
+        let filter = '';
+        let isFocus = false;
+
+        if (diff === 0) {
+          // --- 正中焦点位置 (高亮放大、高光聚焦) ---
+          tx = 0;
+          ty = 0;
+          tz = 60;
+          scale = 1.08;
+          rotY = 0;
+          rotZ = -2;
+          zIndex = 20; // 严控在 20，严格低于吸顶 Header 的 z-30
+          opacity = 1;
+          filter = 'brightness(1.08)';
+          isFocus = true;
+        } else if (diff === -1) {
+          // --- 左侧第 1 位 (左低：ty 下沉 +16px，尺寸缩小至 0.82) ---
+          tx = -96;
+          ty = 16;
+          tz = -25;
+          scale = 0.82;
+          rotY = 26;
+          rotZ = -3.5;
+          zIndex = 15;
+          opacity = 0.88;
+          filter = 'brightness(0.9)';
+        } else if (diff === 1) {
+          // --- 右侧第 1 位 (右高：ty 上提 -16px，尺寸缩小至 0.82) ---
+          tx = 96;
+          ty = -16;
+          tz = -25;
+          scale = 0.82;
+          rotY = -26;
+          rotZ = -3.5;
+          zIndex = 15;
+          opacity = 0.88;
+          filter = 'brightness(0.9)';
+        } else if (diff === -2) {
+          // --- 左侧第 2 位 (左更低：ty 下沉 +28px，尺寸缩小至 0.65) ---
+          tx = -158;
+          ty = 28;
+          tz = -100;
+          scale = 0.65;
+          rotY = 48;
+          rotZ = -4.5;
+          zIndex = 10;
+          opacity = 0.46;
+          filter = 'brightness(0.72)';
+        } else if (diff === 2) {
+          // --- 右侧第 2 位 (右更高：ty 上提 -28px，尺寸缩小至 0.65) ---
+          tx = 158;
+          ty = -28;
+          tz = -100;
+          scale = 0.65;
+          rotY = -48;
+          rotZ = -4.5;
+          zIndex = 10;
+          opacity = 0.46;
+          filter = 'brightness(0.72)';
+        } else {
+          // --- 正背面 衔接过渡 ---
+          tx = 0;
+          ty = 0;
+          tz = -220;
+          scale = 0.5;
+          rotY = 180;
+          rotZ = 0;
+          zIndex = 4;
+          opacity = 0.08;
+          filter = 'brightness(0.4)';
+        }
+
+        // 应用高精度 CSS 3D Transform
+        card.style.transform = `translate3d(${tx}px, ${ty}px, ${tz}px) scale(${scale}) rotateY(${rotY}deg) rotateZ(${rotZ}deg)`;
+        card.style.zIndex = zIndex;
+        card.style.opacity = opacity;
+        card.style.filter = filter;
+
+        // 居中焦点卡片高亮金光环形边框
+        if (isFocus) {
+          card.classList.add('ring-2', 'ring-amber-400', 'shadow-2xl', 'shadow-amber-500/25');
+          card.classList.remove('border', 'border-white/10');
+        } else {
+          card.classList.remove('ring-2', 'ring-amber-400', 'shadow-2xl', 'shadow-amber-500/25');
+          card.classList.add('border', 'border-white/10');
+        }
+      }
+
+      // 更新底部指示点
+      for (let i = 0; i < total; i++) {
+        const dot = document.getElementById(`ring-dot-${i}`);
+        if (!dot) continue;
+        if (i === cur) {
+          dot.className = 'w-5 h-1.5 bg-amber-400 rounded-full transition-all duration-300 shadow-xs';
+        } else {
+          dot.className = 'w-1.5 h-1.5 bg-gray-400/40 rounded-full transition-all duration-300';
+        }
+      }
+
+      // 更新顶部状态文字
+      const badgeText = document.getElementById('ring-badge-text');
+      if (badgeText && items6[cur]) {
+        const item = items6[cur];
+        badgeText.innerText = `${item.queueTitle} · ${item.isCore ? '★ 核心驻留' : '✨ 随机探索'}`;
+      }
+    }
+
+    // 点击 3D 卡片：若是正中焦点，打开大图全屏预览；若在两侧，旋转居中
+    function handleRingCardClick(index) {
+      if (index === ringCarouselCurrentIdx) {
+        const card = document.getElementById(`ring-card-${index}`);
+        if (card && card.dataset.key) {
+          openLightbox(card.dataset.key);
+        }
+      } else {
+        pauseAndResumeRingAutoPlay();
+        ringCarouselCurrentIdx = index;
+        const stage = document.getElementById('ring-3d-stage');
+        if (stage && stage.children.length > 0) {
+          // 获取当前数据项总数
+          const allPool = getAllBucketMediaPool();
+          renderRingPositions(allPool.slice(0, 6));
+        }
+      }
+    }
+
+    // 点击底部指示小点跳转
+    function jumpRingCarousel(targetIdx) {
+      pauseAndResumeRingAutoPlay();
+      ringCarouselCurrentIdx = targetIdx;
+      const allPool = getAllBucketMediaPool();
+      renderRingPositions(allPool.slice(0, 6));
+    }
+
+    // 绑定轻扫手势
+    function bindRingTouchSwipe(items6) {
+      const wrapper = document.getElementById('show-ring-wrapper');
+      if (!wrapper) return;
+
+      let startX = 0;
+      let startY = 0;
+
+      wrapper.ontouchstart = (e) => {
+        if (!e.touches || e.touches.length === 0) return;
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+      };
+
+      wrapper.ontouchend = (e) => {
+        if (!e.changedTouches || e.changedTouches.length === 0) return;
+        const endX = e.changedTouches[0].clientX;
+        const endY = e.changedTouches[0].clientY;
+        const dx = endX - startX;
+        const dy = endY - startY;
+
+        // 水平滑动位移大于垂直位移且超过 30px
+        if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 30) {
+          pauseAndResumeRingAutoPlay();
+          if (dx < 0) {
+            // 向左滑动：下一张
+            ringCarouselCurrentIdx = (ringCarouselCurrentIdx + 1) % items6.length;
+          } else {
+            // 向右滑动：上一张
+            ringCarouselCurrentIdx = (ringCarouselCurrentIdx - 1 + items6.length) % items6.length;
+          }
+          renderRingPositions(items6);
+        }
+      };
+    }
+
+    // 自动轮播与交互暂停恢复
+    function startRingAutoPlay(items6) {
+      if (ringCarouselAutoTimer) clearInterval(ringCarouselAutoTimer);
+      ringCarouselAutoTimer = setInterval(() => {
+        if (currentActiveTab !== 'show') return;
+        ringCarouselCurrentIdx = (ringCarouselCurrentIdx + 1) % items6.length;
+        renderRingPositions(items6);
+      }, 4000);
+    }
+
+    function pauseAndResumeRingAutoPlay() {
+      if (ringCarouselAutoTimer) clearInterval(ringCarouselAutoTimer);
+      ringCarouselAutoTimer = setTimeout(() => {
+        const allPool = getAllBucketMediaPool();
+        startRingAutoPlay(allPool.slice(0, 6));
+      }, 6000);
     }
 
     // 底部 Tab 状态管理与登录前置检查
@@ -1824,6 +2260,12 @@
     function switchBottomTab(tabName) {
       const topNavBar = document.getElementById('top-nav-bar');
       const uploadBtn = document.getElementById('upload-btn-container');
+
+      // 若离开 Show Tab，主动清理 3D 环形轮播定时器，避免后台空转消耗 CPU
+      if (tabName !== 'show' && ringCarouselAutoTimer) {
+        clearInterval(ringCarouselAutoTimer);
+        ringCarouselAutoTimer = null;
+      }
 
       // 1. 设置 tab 无需鉴权，直接展示内嵌设置与登录配置页
       if (tabName === 'settings') {
@@ -1950,23 +2392,24 @@
         const selectedLabel = currentSelectedDir ? `相册 [${currentSelectedDir}]` : '存储桶根路径 (/)';
 
         let html = `
-          <div class="px-1 pt-1 pb-1 flex items-center justify-between">
-            <div>
-              <h2 class="text-base font-extrabold tracking-tight text-gray-900 dark:text-white flex items-center space-x-1.5">
+          <!-- 存储 Tab 顶部悬浮吸顶栏与操作区 (防折行、iOS Glass 吸顶) -->
+          <div class="sticky top-0 z-20 ios-glass border-b border-gray-200/50 dark:border-gray-800/60 -mx-3 px-3.5 pt-2 pb-2.5 flex items-center justify-between mb-2 shadow-xs bg-white/90 dark:bg-[#121214]/90 backdrop-blur-xl">
+            <div class="flex-1 min-w-0 pr-2">
+              <h2 class="text-sm font-extrabold tracking-tight text-gray-900 dark:text-white flex items-center space-x-1.5 truncate">
                 <span>📁 存储目录与相册管理</span>
               </h2>
-              <p class="text-[11px] text-gray-400 mt-0.5">全桶共 ${totalCount} 项媒体 · ${dirs.length} 个独立相册目录</p>
+              <p class="text-[10px] text-gray-400 mt-0.5 whitespace-nowrap overflow-hidden text-ellipsis font-medium">全桶共 ${totalCount} 项媒体 · ${dirs.length} 个独立相册目录</p>
             </div>
-            <div class="flex items-center space-x-1.5">
-              <button onclick="triggerUploadModal()" class="px-2.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white active:scale-95 text-xs font-semibold flex items-center space-x-1 transition shadow-xs" title="上传至当前选中目录: ${selectedLabel}">
+            <div class="flex items-center space-x-1 flex-shrink-0">
+              <button onclick="triggerUploadModal()" class="px-2 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white active:scale-95 text-xs font-semibold flex items-center space-x-0.5 transition shadow-xs flex-shrink-0" title="上传至当前选中目录: ${selectedLabel}">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
                 <span>上传</span>
               </button>
-              <button onclick="createNewDirectory()" class="px-2.5 py-1.5 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 active:scale-95 text-xs font-semibold flex items-center space-x-1 transition shadow-xs">
-                <span>+ 新相册</span>
+              <button onclick="createNewDirectory()" class="px-2 py-1.5 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 active:scale-95 text-xs font-semibold flex items-center space-x-0.5 transition shadow-xs flex-shrink-0">
+                <span>+ 新建</span>
               </button>
-              <button onclick="rescanBucketDirectories(true)" class="p-1.5 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 active:scale-95 transition shadow-xs" title="重新全量扫描">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+              <button onclick="rescanBucketDirectories(true)" class="p-1.5 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 active:scale-95 transition shadow-xs flex-shrink-0" title="重新全量扫描">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
               </button>
             </div>
           </div>
@@ -2050,21 +2493,21 @@
         }
 
         let html = `
-          <!-- 目录预览顶部吸顶操作与返回栏 -->
-          <div class="sticky top-0 z-10 ios-glass py-2.5 px-3 flex items-center justify-between border-b border-gray-200/40 dark:border-gray-800/40 mb-3 -mx-3 shadow-xs">
-            <div class="flex items-center space-x-1.5">
-              <button onclick="exitStorageFolder()" class="inline-flex items-center space-x-1 px-3 py-1.5 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-xs font-semibold active:scale-95 transition">
+          <!-- 目录预览顶部悬浮吸顶操作与返回栏 (增强 iOS 磨砂、z-20 悬浮、防折行) -->
+          <div class="sticky top-0 z-20 ios-glass bg-white/90 dark:bg-[#121214]/90 backdrop-blur-xl py-2 px-3 flex items-center justify-between border-b border-gray-200/50 dark:border-gray-800/60 mb-3 -mx-3 shadow-xs">
+            <div class="flex items-center space-x-1.5 flex-shrink-0">
+              <button onclick="exitStorageFolder()" class="inline-flex items-center space-x-1 px-2.5 py-1.5 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs font-semibold active:scale-95 transition">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
                 <span>返回</span>
               </button>
-              <button onclick="triggerUploadModal()" class="inline-flex items-center space-x-1 px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold active:scale-95 transition shadow-xs">
+              <button onclick="triggerUploadModal()" class="inline-flex items-center space-x-1 px-2.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold active:scale-95 transition shadow-xs">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
-                <span>上传至此目录</span>
+                <span>上传照片</span>
               </button>
             </div>
-            <div class="text-right min-w-0 pr-1">
-              <div class="text-xs font-bold text-gray-800 dark:text-gray-100 truncate max-w-[140px]">📁 ${folderTitle}</div>
-              <div class="text-[10px] text-gray-400">${folderMedia.length} 项相册媒体</div>
+            <div class="text-right min-w-0 pl-2">
+              <div class="text-xs font-bold text-gray-800 dark:text-gray-100 truncate whitespace-nowrap">📁 ${folderTitle}</div>
+              <div class="text-[10px] text-gray-400 whitespace-nowrap overflow-hidden text-ellipsis">${folderMedia.length} 项相册媒体</div>
             </div>
           </div>
         `;
@@ -2093,16 +2536,18 @@
               const vidInitialSrc = memBlobUrl || item.thumbUrl;
               html += `
                 <div onclick="openLightbox('${item.key}')" class="media-card-item group relative aspect-square rounded-xl overflow-hidden bg-gradient-to-br from-slate-900 via-gray-900 to-black cursor-pointer active:scale-95 transition shadow-sm border border-white/5">
-                  <img id="storage-video-thumb-${item.id}"
-                       data-key="${item.key}"
-                       data-etag="${item.etag}"
-                       src="${vidInitialSrc}" 
-                       alt="${item.title}" 
-                       loading="lazy" 
-                       decoding="async" 
-                       class="w-full h-full object-cover pointer-events-none ${isMemHit ? '' : 'opacity-0'} transition-opacity duration-300"
-                       onload="handleVideoThumbLoaded(this, ${item.id})"
-                       onerror="handleVideoThumbError(this, ${item.id})">
+                  ${vidInitialSrc ? `
+                    <img id="storage-video-thumb-${item.id}"
+                         data-key="${item.key}"
+                         data-etag="${item.etag}"
+                         src="${vidInitialSrc}" 
+                         alt="${item.title}" 
+                         loading="lazy" 
+                         decoding="async" 
+                         class="w-full h-full object-cover pointer-events-none ${isMemHit ? '' : 'opacity-0'} transition-opacity duration-300"
+                         onload="handleVideoThumbLoaded(this, ${item.id})"
+                         onerror="handleVideoThumbError(this, ${item.id})">
+                  ` : ''}
                   <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
                     <div class="w-9 h-9 rounded-full bg-black/50 backdrop-blur-md flex items-center justify-center text-white shadow">
                       <svg class="w-4 h-4 fill-current ml-0.5" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
@@ -2702,9 +3147,9 @@
       fetchPhotosPage(true);
     }
 
-    // 从全桶媒体库按目录分类提取并按时间排序后的完整媒体池
+    // 从全桶媒体库按目录分类提取并按时间排序后的完整媒体池（全局排除 _thumb.webp）
     function getCategorizedMediaPool() {
-      const allMedia = Array.from(allBucketMediaMap.values());
+      const allMedia = Array.from(allBucketMediaMap.values()).filter(p => !isVideoCompanionThumbnail(p.key));
       // 严格按时间线（最后修改或 EXIF 拍摄时间）从新到旧倒序呈现
       return allMedia.sort((a, b) => {
         const tA = new Date(a.dateRaw || 0).getTime();
@@ -2784,12 +3229,25 @@
         photosIsLoadingMore = false;
         rotateIcon.classList.remove('animate-spin');
 
+        // Pass 1: 扫描并建立伴生视频封面字典（${InputName}_${Number}_thumb.webp）
+        companionVideoThumbsMap.clear();
+        allObjects.forEach(item => {
+          if (isVideoCompanionThumbnail(item.Key)) {
+            const baseKey = getCompanionBaseVideoKey(item.Key);
+            if (baseKey) companionVideoThumbsMap.set(baseKey, item.Key);
+          }
+        });
+
+        // Pass 2: 建立媒体项（过滤伴生封面）
         const counts = { '': 0 };
         allObjects.forEach(item => {
           if (item.Key.endsWith('/')) {
             if (!counts[item.Key]) counts[item.Key] = 0;
             return;
           }
+          // 伴生视频封面图由视频本身引用，不作为独立照片显示
+          if (isVideoCompanionThumbnail(item.Key)) return;
+
           const lower = item.Key.toLowerCase();
           const isMedia = imageExts.some(ext => lower.endsWith(ext)) || videoExts.some(ext => lower.endsWith(ext));
           if (!isMedia) return;
@@ -2919,6 +3377,8 @@
     // 构造或复用统一的媒体对象（注入全桶字典 allBucketMediaMap 保证全局唯一）
     function createMediaItemObject(obj) {
       if (!obj || !obj.Key) return null;
+      // 严格阻断：伴生封面图绝不作为独立媒体项创建
+      if (isVideoCompanionThumbnail(obj.Key)) return null;
       if (allBucketMediaMap.has(obj.Key)) {
         return allBucketMediaMap.get(obj.Key);
       }
@@ -2931,10 +3391,18 @@
 
       let thumbUrl = '';
       let previewUrl = rawUrl;
+      let companionThumbKey = '';
 
       if (isVid) {
-        // 方案 A：腾讯云数据万象 CI 极速视频截帧 (第 1 秒, 400px 宽度)
-        thumbUrl = buildCiUrl(rawUrl, ciConfig.videoSnapshotRule);
+        // 视频封面策略：仅使用同名伴生封面图（${InputName}_${Number}_thumb.webp 或旧版 _0.jpg）
+        // 彻底移除腾讯云 CI 动态截帧策略，匹配不成功时直接设为空，使用默认深黑磨砂质感卡片
+        const baseKey = obj.Key.substring(0, obj.Key.lastIndexOf('.')).toLowerCase();
+        if (companionVideoThumbsMap.has(baseKey)) {
+          companionThumbKey = companionVideoThumbsMap.get(baseKey);
+          thumbUrl = getSignedObjectUrl(companionThumbKey);
+        } else {
+          thumbUrl = '';
+        }
         previewUrl = rawUrl;
       } else {
         thumbUrl = buildCiUrl(rawUrl, ciConfig.thumbRule);
@@ -2958,6 +3426,7 @@
         previewUrl: previewUrl,
         isHeic: isHeic,
         isVideo: isVid,
+        companionThumbKey: companionThumbKey,
         duration: cachedDur
       };
 
@@ -3026,7 +3495,11 @@
         signedUrlCache.set(cacheKey, { url: freshUrl, time: Date.now() });
         item.url = freshUrl;
         if (isVid) {
-          item.thumbUrl = buildCiUrl(freshUrl, ciConfig.videoSnapshotRule);
+          if (item.companionThumbKey) {
+            item.thumbUrl = getSignedObjectUrl(item.companionThumbKey);
+          } else {
+            item.thumbUrl = '';
+          }
           item.previewUrl = freshUrl;
         } else {
           item.thumbUrl = buildCiUrl(freshUrl, ciConfig.thumbRule);
@@ -3087,17 +3560,19 @@
             const vidInitialSrc = memBlobUrl || item.thumbUrl;
             itemsHtml += `
               <div onclick="openLightbox(${item.id})" class="media-card-item group relative aspect-square rounded-xl overflow-hidden bg-gradient-to-br from-slate-900 via-gray-900 to-black cursor-pointer active:scale-95 transition shadow-sm border border-white/5">
-                <!-- 视频首帧缩略图 / 本地持久化 Blob -->
-                <img id="video-ci-thumb-${item.id}"
-                     data-key="${item.key}"
-                     data-etag="${item.etag}"
-                     src="${vidInitialSrc}"
-                     alt=""
-                     loading="lazy"
-                     decoding="async"
-                     class="w-full h-full object-cover pointer-events-none ${isMemHit ? '' : 'opacity-0'} transition-opacity duration-300"
-                     onload="handleVideoThumbLoaded(this, ${item.id})"
-                     onerror="handleVideoCiThumbError(this, ${item.id})">
+                <!-- 视频伴生封面图 / 本地持久化 Blob (若无伴生图则直接展示深黑质感背景与磨砂播放键) -->
+                ${vidInitialSrc ? `
+                  <img id="video-ci-thumb-${item.id}"
+                       data-key="${item.key}"
+                       data-etag="${item.etag}"
+                       src="${vidInitialSrc}"
+                       alt=""
+                       loading="lazy"
+                       decoding="async"
+                       class="w-full h-full object-cover pointer-events-none ${isMemHit ? '' : 'opacity-0'} transition-opacity duration-300"
+                       onload="handleVideoThumbLoaded(this, ${item.id})"
+                       onerror="handleVideoCiThumbError(this, ${item.id})">
+                ` : ''}
 
                 <!-- 视频正中唯一的原生质感播放按钮 (毛玻璃圆盘，居中唯一定位) -->
                 <div class="absolute inset-0 z-10 flex flex-col items-center justify-center pointer-events-none select-none px-2">
@@ -3105,7 +3580,7 @@
                     <svg class="w-4 h-4 ml-0.5 fill-current text-white" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
                   </div>
                   <!-- 仅在无封面时呈现的文件名提示 -->
-                  <span id="video-name-fallback-${item.id}" class="${isMemHit ? 'hidden' : ''} text-[8px] font-medium text-white/80 max-w-[90%] truncate mt-1 text-center">${item.title}</span>
+                  <span id="video-name-fallback-${item.id}" class="${vidInitialSrc ? 'hidden' : ''} text-[8px] font-medium text-white/80 max-w-[90%] truncate mt-1 text-center">${item.title}</span>
                 </div>
 
                 <!-- 视频时长角标 (右下角纯净时长，无多余播放小三角) -->
@@ -3341,6 +3816,7 @@
           showToast(`⚠️ 内嵌解码受限，可点击下方【全屏播放】直接调用系统播放器`);
         };
 
+        lightVideo.poster = currentPhoto.thumbUrl || '';
         lightVideo.src = currentPhoto.url;
         lightVideo.currentTime = 0;
         lightVideo.load(); // iOS Safari 动态换源必须显式触发 load()
@@ -3453,6 +3929,8 @@
       }
 
       const modal = document.getElementById('lightbox-modal');
+      modal.classList.remove('hidden');
+      void modal.offsetWidth; // 触发 reflow，确保淡入动画平滑
       modal.classList.remove('opacity-0', 'pointer-events-none');
       isZoomed = false;
       document.getElementById('lightbox-img').style.transform = 'scale(1)';
@@ -3469,11 +3947,26 @@
       if (lightVideo) {
         lightVideo.pause();
         lightVideo.removeAttribute('src');
+        lightVideo.removeAttribute('poster');
         lightVideo.load();
+        lightVideo.classList.add('hidden');
       }
+      const directPlayBtn = document.getElementById('lightbox-direct-play-btn');
+      if (directPlayBtn) directPlayBtn.classList.add('hidden');
+
       const spinner = document.getElementById('video-buffering-spinner');
       if (spinner) spinner.classList.add('hidden');
-      document.getElementById('lightbox-modal').classList.add('opacity-0', 'pointer-events-none');
+
+      const modal = document.getElementById('lightbox-modal');
+      modal.classList.add('opacity-0', 'pointer-events-none');
+      // 300ms 淡出动画完成后彻底设置 hidden (display: none)，杜绝透明层拦截或击穿到底栏按钮
+      setTimeout(() => {
+        if (modal.classList.contains('opacity-0')) {
+          modal.classList.add('hidden');
+        }
+      }, 300);
+
+      currentPhoto = null;
       closeExifSheet();
     }
 
@@ -3493,6 +3986,12 @@
 
     // 全屏打开原媒体 (针对 iOS 原生 MOV 视频，直接唤起系统原生的 AVPlayer / QuickTime 播放器)
     function openDirectMediaUrl() {
+      // 防御检查：若预览层处于关闭或淡出状态，严禁触发任何播放或下载操作
+      const modal = document.getElementById('lightbox-modal');
+      if (!modal || modal.classList.contains('hidden') || modal.classList.contains('opacity-0')) {
+        return;
+      }
+
       if (!currentPhoto || !currentPhoto.url) {
         showToast('⚠️ 未找到有效媒体播放地址');
         return;
